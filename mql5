@@ -1,0 +1,97 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                                  EA Super 8.mq5 |
+//|                      Copyright 2021, Forex Robot Easy Team      |
+//|                                      http://www.forexroboteasy.com|
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//| Expert advisor initialization function                           |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Set necessary parameters and variables
+    double accountBalance = AccountInfoDouble(ACCOUNT_BALANCE);
+    double riskPercentage = 0.1; // Risk 10% of account balance per trade
+    double riskAmount = accountBalance * riskPercentage / 10;
+    double lotSize = NormalizeDouble(riskAmount / 1000, 2); // Divide risk amount by 1000 to get lot size
+
+    // Calculate the number of trades based on available capital
+    int maxTrades = MathFloor(accountBalance / riskAmount);
+
+    // Calculate minimum profit per trade
+    double minProfit = accountBalance / maxTrades;
+
+    // Get current trend direction
+    int trendDirection = GetTrendDirection();
+
+    // Trade only when all recommended trading strategies are followed
+    if (trendDirection == TREND_UP && IsStrategy1Valid())
+    {
+        // Open buy trade
+        OrderSend(Symbol(), OP_BUY, lotSize, Ask, 0, 0, 0, 'EA Super 8', 0, 0, Blue);
+    }
+    else if (trendDirection == TREND_DOWN && IsStrategy2Valid())
+    {
+        // Open sell trade
+        OrderSend(Symbol(), OP_SELL, lotSize, Bid, 0, 0, 0, 'EA Super 8', 0, 0, Red);
+    }
+
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert advisor tick function                                      |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+    // Close trades with minimum profit
+    CloseTradesWithMinimumProfit();
+}
+
+//+------------------------------------------------------------------+
+//| Function to determine the direction of the trend                  |
+//+------------------------------------------------------------------+
+int GetTrendDirection()
+{
+    // Add logic to determine trend direction here
+    // Return TREND_UP if the trend is up, TREND_DOWN if the trend is down, or TREND_NONE if no trend is detected
+}
+
+//+------------------------------------------------------------------+
+//| Function to check if Strategy 1 is valid                           |
+//+------------------------------------------------------------------+
+bool IsStrategy1Valid()
+{
+    // Add logic to check if Strategy 1 is valid here
+    // Return true if Strategy 1 is valid, false otherwise
+}
+
+//+------------------------------------------------------------------+
+//| Function to check if Strategy 2 is valid                           |
+//+------------------------------------------------------------------+
+bool IsStrategy2Valid()
+{
+    // Add logic to check if Strategy 2 is valid here
+    // Return true if Strategy 2 is valid, false otherwise
+}
+
+//+------------------------------------------------------------------+
+//| Function to close trades with minimum profit                       |
+//+------------------------------------------------------------------+
+void CloseTradesWithMinimumProfit()
+{
+    // Loop through all open trades
+    for (int i = OrdersTotal() - 1; i >= 0; i--)
+    {
+        if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
+        {
+            // Check if trade meets minimum profit requirement
+            if (OrderProfit() >= minProfit)
+            {
+                // Close trade
+                OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 0, Green);
+            }
+        }
+    }
+}
